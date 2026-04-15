@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace Pelago\Emogrifier\HtmlProcessor;
 
+use InvalidArgumentException;
+use DOMDocument;
+use DOMXPath;
+use UnexpectedValueException;
+use DOMNode;
+use RuntimeException;
+use DOMElement;
 use function Safe\preg_match;
 use function Safe\preg_replace;
 
@@ -15,6 +22,7 @@ use function Safe\preg_replace;
 abstract class AbstractHtmlProcessor
 {
     protected const DEFAULT_DOCUMENT_TYPE = '<!DOCTYPE html>';
+
     protected const CONTENT_TYPE_META_TAG = '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">';
 
     /**
@@ -45,12 +53,12 @@ abstract class AbstractHtmlProcessor
         = '%<template[\\s>][^<]*+(?:<(?!/template>)[^<]*+)*+(?:</template>|$)%i';
 
     /**
-     * @var \DOMDocument|null
+     * @var DOMDocument|null
      */
     protected $domDocument = null;
 
     /**
-     * @var \DOMXPath|null
+     * @var DOMXPath|null
      */
     private $xPath = null;
 
@@ -68,13 +76,13 @@ abstract class AbstractHtmlProcessor
      *
      * @return static
      *
-     * @throws \InvalidArgumentException if $unprocessedHtml is anything other than a non-empty string
+     * @throws InvalidArgumentException if $unprocessedHtml is anything other than a non-empty string
      */
     public static function fromHtml(string $unprocessedHtml): self
     {
         // @phpstan-ignore-next-line argument.type We're checking for a contract violation here.
         if ($unprocessedHtml === '') {
-            throw new \InvalidArgumentException('The provided HTML must not be empty.', 1515763647);
+            throw new InvalidArgumentException('The provided HTML must not be empty.', 1515763647);
         }
 
         $instance = new static();
@@ -86,11 +94,11 @@ abstract class AbstractHtmlProcessor
     /**
      * Builds a new instance from the given DOM document.
      *
-     * @param \DOMDocument $document a DOM document returned by getDomDocument() of another instance
+     * @param DOMDocument $document a DOM document returned by getDomDocument() of another instance
      *
      * @return static
      */
-    public static function fromDomDocument(\DOMDocument $document): self
+    public static function fromDomDocument(DOMDocument $document): self
     {
         $instance = new static();
         $instance->setDomDocument($document);
@@ -111,29 +119,29 @@ abstract class AbstractHtmlProcessor
     /**
      * Provides access to the internal DOMDocument representation of the HTML in its current state.
      *
-     * @throws \UnexpectedValueException
+     * @throws UnexpectedValueException
      */
-    public function getDomDocument(): \DOMDocument
+    public function getDomDocument(): DOMDocument
     {
-        \assert($this->domDocument instanceof \DOMDocument);
+        \assert($this->domDocument instanceof DOMDocument);
 
         return $this->domDocument;
     }
 
-    private function setDomDocument(\DOMDocument $domDocument): void
+    private function setDomDocument(DOMDocument $domDocument): void
     {
         $this->domDocument = $domDocument;
-        $this->xPath = new \DOMXPath($this->domDocument);
+        $this->xPath = new DOMXPath($this->domDocument);
     }
 
     /**
-     * @throws \UnexpectedValueException
+     * @throws UnexpectedValueException
      */
-    protected function getXPath(): \DOMXPath
+    protected function getXPath(): DOMXPath
     {
-        if (!$this->xPath instanceof \DOMXPath) {
+        if (!$this->xPath instanceof DOMXPath) {
             $message = self::class . '::setDomDocument() has not yet been called on ' . static::class;
-            throw new \UnexpectedValueException($message, 1617819086);
+            throw new UnexpectedValueException($message, 1617819086);
         }
 
         return $this->xPath;
@@ -142,7 +150,7 @@ abstract class AbstractHtmlProcessor
     /**
      * Renders the normalized and processed HTML.
      *
-     * @throws \RuntimeException if there is an internal error with `DOMDocument`
+     * @throws RuntimeException if there is an internal error with `DOMDocument`
      */
     public function render(): string
     {
@@ -152,7 +160,7 @@ abstract class AbstractHtmlProcessor
     /**
      * Renders the content of the BODY element of the normalized and processed HTML.
      *
-     * @throws \RuntimeException if there is an internal error with `DOMDocument`
+     * @throws RuntimeException if there is an internal error with `DOMDocument`
      */
     public function renderBodyContent(): string
     {
@@ -162,17 +170,18 @@ abstract class AbstractHtmlProcessor
     }
 
     /**
-     * @param ?\DOMNode $node optional parameter to output a subset of the document
+     * @param ?DOMNode $node optional parameter to output a subset of the document
      *
-     * @throws \RuntimeException if there is an internal error with `DOMDocument`
+     * @throws RuntimeException if there is an internal error with `DOMDocument`
      */
-    private function getHtml(?\DOMNode $node = null): string
+    private function getHtml(?DOMNode $node = null): string
     {
         $html = $this->getDomDocument()->saveHTML($node);
 
         if (!\is_string($html)) {
-            throw new \RuntimeException('`DOMDocument::saveHTML()` failed.', 1773018082);
+            throw new RuntimeException('`DOMDocument::saveHTML()` failed.', 1773018082);
         }
+
         return $this->removeSelfClosingTagsClosingTags($html);
     }
 
@@ -189,13 +198,13 @@ abstract class AbstractHtmlProcessor
      *
      * This method assumes that there always is an HTML element, throwing an exception otherwise.
      *
-     * @throws \UnexpectedValueException
+     * @throws UnexpectedValueException
      */
-    protected function getHtmlElement(): \DOMElement
+    protected function getHtmlElement(): DOMElement
     {
         $htmlElement = $this->getDomDocument()->getElementsByTagName('html')->item(0);
-        if (!$htmlElement instanceof \DOMElement) {
-            throw new \UnexpectedValueException('There is no HTML element although there should be one.', 1569930853);
+        if (!$htmlElement instanceof DOMElement) {
+            throw new UnexpectedValueException('There is no HTML element although there should be one.', 1569930853);
         }
 
         return $htmlElement;
@@ -206,13 +215,13 @@ abstract class AbstractHtmlProcessor
      *
      * This method assumes that there always is a BODY element.
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
-    private function getBodyElement(): \DOMElement
+    private function getBodyElement(): DOMElement
     {
         $node = $this->getDomDocument()->getElementsByTagName('body')->item(0);
-        if (!$node instanceof \DOMElement) {
-            throw new \RuntimeException('There is no body element.', 1617922607);
+        if (!$node instanceof DOMElement) {
+            throw new RuntimeException('There is no body element.', 1617922607);
         }
 
         return $node;
@@ -234,9 +243,10 @@ abstract class AbstractHtmlProcessor
      */
     private function createRawDomDocument(string $html): void
     {
-        $domDocument = new \DOMDocument();
+        $domDocument = new DOMDocument();
         $domDocument->strictErrorChecking = false;
         $domDocument->formatOutput = false;
+
         $libXmlState = \libxml_use_internal_errors(true);
         $domDocument->loadHTML($this->prepareHtmlForDomConversion($html), LIBXML_PARSEHUGE);
         \libxml_clear_errors();
@@ -328,6 +338,7 @@ abstract class AbstractHtmlProcessor
         } else {
             $reworkedHtml = self::CONTENT_TYPE_META_TAG . $html;
         }
+
         \assert($reworkedHtml !== '');
 
         return $reworkedHtml;
@@ -387,7 +398,7 @@ abstract class AbstractHtmlProcessor
             $htmlBefore = $matches[0];
             try {
                 $hasContentTypeMetaTagInHead = !$this->hasEndOfHeadElement($htmlBefore);
-            } catch (\RuntimeException $exception) {
+            } catch (RuntimeException $exception) {
                 // If something unexpected occurs, assume the `Content-Type` that was found is valid.
                 \trigger_error($exception->getMessage());
                 $hasContentTypeMetaTagInHead = true;
@@ -404,7 +415,7 @@ abstract class AbstractHtmlProcessor
      * expected to end the `<head>` element and start the `<body>` element upon encountering a start tag for any element
      * which is permitted only within the `<body>`.
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     private function hasEndOfHeadElement(string $html): bool
     {
@@ -455,11 +466,11 @@ abstract class AbstractHtmlProcessor
     /**
      * Checks that $this->domDocument has a BODY element and adds it if it is missing.
      *
-     * @throws \UnexpectedValueException
+     * @throws UnexpectedValueException
      */
     private function ensureExistenceOfBodyElement(): void
     {
-        if ($this->getDomDocument()->getElementsByTagName('body')->item(0) instanceof \DOMElement) {
+        if ($this->getDomDocument()->getElementsByTagName('body')->item(0) instanceof DOMElement) {
             return;
         }
 

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Pelago\Emogrifier\HtmlProcessor;
 
+use DOMNodeList;
+use DOMElement;
+use BadMethodCallException;
 use Pelago\Emogrifier\CssInliner;
 use Pelago\Emogrifier\Utilities\ArrayIntersector;
 
@@ -21,7 +24,7 @@ final class HtmlPruner extends AbstractHtmlProcessor
      * not attribute values. Consequently, we need to translate() the letters that would be in 'NONE' ("NOE")
      * to lowercase.
      */
-    private const DISPLAY_NONE_MATCHER
+    private const string DISPLAY_NONE_MATCHER
         = '//*[@style and contains(translate(translate(@style," ",""),"NOE","noe"),"display:none")'
         . ' and not(@class and contains(concat(" ", normalize-space(@class), " "), " -emogrifier-keep "))]';
 
@@ -33,15 +36,15 @@ final class HtmlPruner extends AbstractHtmlProcessor
     public function removeElementsWithDisplayNone(): self
     {
         $elementsWithStyleDisplayNone = $this->getXPath()->query(self::DISPLAY_NONE_MATCHER);
-        \assert($elementsWithStyleDisplayNone instanceof \DOMNodeList);
+        \assert($elementsWithStyleDisplayNone instanceof DOMNodeList);
         if ($elementsWithStyleDisplayNone->length === 0) {
             return $this;
         }
 
         foreach ($elementsWithStyleDisplayNone as $element) {
-            \assert($element instanceof \DOMElement);
+            \assert($element instanceof DOMElement);
             $parentNode = $element->parentNode;
-            if ($parentNode instanceof \DOMElement) {
+            if ($parentNode instanceof DOMElement) {
                 $parentNode->removeChild($element);
             }
         }
@@ -64,7 +67,7 @@ final class HtmlPruner extends AbstractHtmlProcessor
      */
     public function removeRedundantClasses(array $classesToKeep = []): self
     {
-        /** @var \DOMNodeList<\DOMElement> $elementsWithClassAttribute */
+        /** @var DOMNodeList<DOMElement> $elementsWithClassAttribute */
         $elementsWithClassAttribute = $this->getXPath()->query('//*[@class]');
 
         if ($classesToKeep !== []) {
@@ -81,10 +84,10 @@ final class HtmlPruner extends AbstractHtmlProcessor
      * Removes classes from the `class` attribute of each element in `$elements`, except any in `$classesToKeep`,
      * removing the `class` attribute itself if the resultant list is empty.
      *
-     * @param \DOMNodeList<\DOMElement> $elements
+     * @param DOMNodeList<DOMElement> $elements
      * @param array<array-key, string> $classesToKeep
      */
-    private function removeClassesFromElements(\DOMNodeList $elements, array $classesToKeep): void
+    private function removeClassesFromElements(DOMNodeList $elements, array $classesToKeep): void
     {
         $classesToKeepIntersector = new ArrayIntersector($classesToKeep);
 
@@ -101,9 +104,9 @@ final class HtmlPruner extends AbstractHtmlProcessor
     }
 
     /**
-     * @param \DOMNodeList<\DOMElement> $elements
+     * @param DOMNodeList<DOMElement> $elements
      */
-    private function removeClassAttributeFromElements(\DOMNodeList $elements): void
+    private function removeClassAttributeFromElements(DOMNodeList $elements): void
     {
         foreach ($elements as $element) {
             $element->removeAttribute('class');
@@ -121,7 +124,7 @@ final class HtmlPruner extends AbstractHtmlProcessor
      *
      * @return $this
      *
-     * @throws \BadMethodCallException if `inlineCss` has not first been called on `$cssInliner`
+     * @throws BadMethodCallException if `inlineCss` has not first been called on `$cssInliner`
      */
     public function removeRedundantClassesAfterCssInlined(CssInliner $cssInliner): self
     {

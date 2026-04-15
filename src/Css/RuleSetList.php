@@ -13,21 +13,18 @@ namespace Pelago\Emogrifier\Css;
 final class RuleSetList
 {
     /**
-     * This holds the full at-rule specification, such as `@media (min-width: 400px)`.
-     * If it is empty, the rule sets are not within an at-rule.
-     *
-     * @var string
-     */
-    private $atRule;
-
-    /**
      * @var list<RuleSet>
      */
     private $ruleSets = [];
 
-    public function __construct(string $atRule)
+    public function __construct(
+        /**
+         * This holds the full at-rule specification, such as `@media (min-width: 400px)`.
+         * If it is empty, the rule sets are not within an at-rule.
+         */
+        private readonly string $atRule
+    )
     {
-        $this->atRule = $atRule;
     }
 
     public function getAtRule(): string

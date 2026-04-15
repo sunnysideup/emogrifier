@@ -17,17 +17,11 @@ final class RuleSet
     private $selectorsAsKeys;
 
     /**
-     * @var string
-     */
-    private $declarationBlock;
-
-    /**
      * @param list<non-empty-string> $selectors
      */
-    public function __construct(array $selectors, string $declarationBlock)
+    public function __construct(array $selectors, private string $declarationBlock)
     {
         $this->selectorsAsKeys = \array_flip($selectors);
-        $this->declarationBlock = $declarationBlock;
     }
 
     /**

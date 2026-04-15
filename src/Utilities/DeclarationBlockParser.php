@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pelago\Emogrifier\Utilities;
 
+use UnexpectedValueException;
 use function Safe\preg_match;
 use function Safe\preg_split;
 
@@ -43,7 +44,7 @@ final class DeclarationBlockParser
      */
     public static function normalizePropertyName(string $name): string
     {
-        if (\substr($name, 0, 2) === '--') {
+        if (str_starts_with($name, '--')) {
             return $name;
         }
 
@@ -75,7 +76,7 @@ final class DeclarationBlockParser
      * @return array<non-empty-string, string>
      *         the CSS declarations with the property names as array keys and the property values as array values
      *
-     * @throws \UnexpectedValueException if an empty property name is encountered (which cannot happen)
+     * @throws UnexpectedValueException if an empty property name is encountered (which cannot happen)
      */
     public static function parse(string $declarationBlock): array
     {
@@ -106,6 +107,7 @@ final class DeclarationBlockParser
             $propertyValue = $matches[2];
             $properties[self::normalizePropertyName($propertyName)] = $propertyValue;
         }
+
         self::$cache[$trimmedDeclarationBlock] = $properties;
 
         return $properties;

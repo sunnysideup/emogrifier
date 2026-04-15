@@ -16,11 +16,6 @@ use Sabberworm\CSS\RuleSet\DeclarationBlock;
 final class StyleRule
 {
     /**
-     * @var DeclarationBlock
-     */
-    private $declarationBlock;
-
-    /**
      * @var string
      */
     private $containingAtRule;
@@ -28,9 +23,8 @@ final class StyleRule
     /**
      * @param string $containingAtRule e.g. `@media screen and (max-width: 480px)`
      */
-    public function __construct(DeclarationBlock $declarationBlock, string $containingAtRule = '')
+    public function __construct(private readonly DeclarationBlock $declarationBlock, string $containingAtRule = '')
     {
-        $this->declarationBlock = $declarationBlock;
         $this->containingAtRule = \trim($containingAtRule);
     }
 

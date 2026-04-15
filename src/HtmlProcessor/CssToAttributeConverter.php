@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Pelago\Emogrifier\HtmlProcessor;
 
+use DOMNodeList;
+use DOMElement;
 use Pelago\Emogrifier\Utilities\DeclarationBlockParser;
 
 use function Safe\preg_match;
@@ -73,14 +75,13 @@ final class CssToAttributeConverter extends AbstractHtmlProcessor
     /**
      * Returns a list with all DOM nodes that have a style attribute.
      *
-     * @return \DOMNodeList<\DOMElement>
+     * @return DOMNodeList<DOMElement>
      */
-    private function getAllNodesWithStyleAttribute(): \DOMNodeList
+    private function getAllNodesWithStyleAttribute(): DOMNodeList
     {
         $result = $this->getXPath()->query('//*[@style]');
-        \assert($result instanceof \DOMNodeList);
-        /** @var \DOMNodeList<\DOMElement> $result */
-
+        \assert($result instanceof DOMNodeList);
+        /** @var DOMNodeList<DOMElement> $result */
         return $result;
     }
 
@@ -92,7 +93,7 @@ final class CssToAttributeConverter extends AbstractHtmlProcessor
      * @param array<non-empty-string, string> $styles
      *        the new CSS styles taken from the global styles to be applied to this node
      */
-    private function mapCssToHtmlAttributes(array $styles, \DOMElement $node): void
+    private function mapCssToHtmlAttributes(array $styles, DOMElement $node): void
     {
         foreach ($styles as $property => $value) {
             // Strip !important indicator
@@ -108,7 +109,7 @@ final class CssToAttributeConverter extends AbstractHtmlProcessor
      *
      * @param non-empty-string $property
      */
-    private function mapCssToHtmlAttribute(string $property, string $value, \DOMElement $node): void
+    private function mapCssToHtmlAttribute(string $property, string $value, DOMElement $node): void
     {
         if (!$this->mapSimpleCssProperty($property, $value, $node)) {
             $this->mapComplexCssProperty($property, $value, $node);
@@ -122,7 +123,7 @@ final class CssToAttributeConverter extends AbstractHtmlProcessor
      *
      * @return bool whether the property can be mapped using the simple mapping table
      */
-    private function mapSimpleCssProperty(string $property, string $value, \DOMElement $node): bool
+    private function mapSimpleCssProperty(string $property, string $value, DOMElement $node): bool
     {
         if (!isset($this->cssToHtmlMap[$property])) {
             return false;
@@ -144,7 +145,7 @@ final class CssToAttributeConverter extends AbstractHtmlProcessor
      *
      * @param non-empty-string $property
      */
-    private function mapComplexCssProperty(string $property, string $value, \DOMElement $node): void
+    private function mapComplexCssProperty(string $property, string $value, DOMElement $node): void
     {
         switch ($property) {
             case 'background':
@@ -166,15 +167,15 @@ final class CssToAttributeConverter extends AbstractHtmlProcessor
     }
 
     /**
-     * @param \DOMElement $node node to apply styles to
+     * @param DOMElement $node node to apply styles to
      * @param string $value the value of the style rule to map
      */
-    private function mapBackgroundProperty(\DOMElement $node, string $value): void
+    private function mapBackgroundProperty(DOMElement $node, string $value): void
     {
         // parse out the color, if any
         $styles = \explode(' ', $value, 2);
         $first = $styles[0];
-        if (\is_numeric($first[0]) || \strncmp($first, 'url', 3) === 0) {
+        if (\is_numeric($first[0]) || str_starts_with($first, 'url')) {
             return;
         }
 
@@ -183,11 +184,11 @@ final class CssToAttributeConverter extends AbstractHtmlProcessor
     }
 
     /**
-     * @param \DOMElement $node node to apply styles to
+     * @param DOMElement $node node to apply styles to
      * @param string $value the value of the style rule to map
      * @param non-empty-string $property the name of the CSS property to map
      */
-    private function mapWidthOrHeightProperty(\DOMElement $node, string $value, string $property): void
+    private function mapWidthOrHeightProperty(DOMElement $node, string $value, string $property): void
     {
         // only parse values in px and %, but not values like "auto"
         if (preg_match('/^(\\d+)(\\.(\\d+))?(px|%)$/', $value) === 0) {
@@ -199,10 +200,10 @@ final class CssToAttributeConverter extends AbstractHtmlProcessor
     }
 
     /**
-     * @param \DOMElement $node node to apply styles to
+     * @param DOMElement $node node to apply styles to
      * @param string $value the value of the style rule to map
      */
-    private function mapMarginProperty(\DOMElement $node, string $value): void
+    private function mapMarginProperty(DOMElement $node, string $value): void
     {
         if (!$this->isTableOrImageNode($node)) {
             return;
@@ -215,10 +216,10 @@ final class CssToAttributeConverter extends AbstractHtmlProcessor
     }
 
     /**
-     * @param \DOMElement $node node to apply styles to
+     * @param DOMElement $node node to apply styles to
      * @param string $value the value of the style rule to map
      */
-    private function mapBorderProperty(\DOMElement $node, string $value): void
+    private function mapBorderProperty(DOMElement $node, string $value): void
     {
         if (!$this->isTableOrImageNode($node)) {
             return;
@@ -229,7 +230,7 @@ final class CssToAttributeConverter extends AbstractHtmlProcessor
         }
     }
 
-    private function isTableOrImageNode(\DOMElement $node): bool
+    private function isTableOrImageNode(DOMElement $node): bool
     {
         return $node->nodeName === 'table' || $node->nodeName === 'img';
     }

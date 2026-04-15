@@ -102,7 +102,7 @@ final class CssDocument
     {
         $this->isImportRuleAllowed = true;
         $cssContents = $this->sabberwormCssDocument->getContents();
-        $atRules = \array_filter($cssContents, [$this, 'isValidAtRuleToRender']);
+        $atRules = \array_filter($cssContents, $this->isValidAtRuleToRender(...));
 
         if ($atRules === []) {
             return '';
@@ -131,9 +131,7 @@ final class CssDocument
         [$mediaType] = \explode('(', $mediaQueryList, 2);
         if (\trim($mediaType) !== '') {
             $escapedAllowedMediaTypes = \array_map(
-                static function (string $allowedMediaType): string {
-                    return \preg_quote($allowedMediaType, '/');
-                },
+                static fn(string $allowedMediaType): string => \preg_quote($allowedMediaType, '/'),
                 $allowedMediaTypes
             );
             $mediaTypesMatcher = \implode('|', $escapedAllowedMediaTypes);
@@ -171,18 +169,13 @@ final class CssDocument
             return false;
         }
 
-        switch ($rule->atRuleName()) {
-            case 'media':
-                $result = false;
-                break;
-            case 'font-face':
-                $result = $rule instanceof CssRuleSet
-                    && $rule->getDeclarations('font-family') !== []
-                    && $rule->getDeclarations('src') !== [];
-                break;
-            default:
-                $result = true;
-        }
+        $result = match ($rule->atRuleName()) {
+            'media' => false,
+            'font-face' => $rule instanceof CssRuleSet
+                && $rule->getDeclarations('font-family') !== []
+                && $rule->getDeclarations('src') !== [],
+            default => true,
+        };
 
         return $result;
     }

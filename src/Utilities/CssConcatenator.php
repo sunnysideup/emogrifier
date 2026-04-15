@@ -93,7 +93,7 @@ final class CssConcatenator
 
     public function getCss(): string
     {
-        return \implode('', \array_map([self::class, 'getRuleSetListCss'], $this->ruleSetLists));
+        return \implode('', \array_map($this->getRuleSetListCss(...), $this->ruleSetLists));
     }
 
     /**
@@ -114,10 +114,10 @@ final class CssConcatenator
         return $newRuleSetList;
     }
 
-    private static function getRuleSetListCss(RuleSetList $ruleSetList): string
+    private function getRuleSetListCss(RuleSetList $ruleSetList): string
     {
         $ruleSets = $ruleSetList->getRuleSets();
-        $css = \implode('', \array_map([self::class, 'getRuleSetCss'], $ruleSets));
+        $css = \implode('', \array_map($this->getRuleSetCss(...), $ruleSets));
         $atRule = $ruleSetList->getAtRule();
         if ($atRule !== '') {
             $css = $atRule . '{' . $css . '}';
@@ -126,7 +126,7 @@ final class CssConcatenator
         return $css;
     }
 
-    private static function getRuleSetCss(RuleSet $ruleSet): string
+    private function getRuleSetCss(RuleSet $ruleSet): string
     {
         $selectors = $ruleSet->getSelectors();
         $declarationBlock = $ruleSet->getDeclarationBlock();

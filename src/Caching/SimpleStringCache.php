@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Pelago\Emogrifier\Caching;
 
+use BadMethodCallException;
+use InvalidArgumentException;
+
 /**
  * This cache caches string values with string keys. It is not PSR-6-compliant.
  *
@@ -32,7 +35,7 @@ final class SimpleStringCache
      *
      * @param non-empty-string $key
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function has(string $key): bool
     {
@@ -47,12 +50,12 @@ final class SimpleStringCache
      *
      * @param non-empty-string $key
      *
-     * @throws \BadMethodCallException
+     * @throws BadMethodCallException
      */
     public function get(string $key): string
     {
         if (!$this->has($key)) {
-            throw new \BadMethodCallException('You can only call `get` with a key for an existing value.', 1625996246);
+            throw new BadMethodCallException('You can only call `get` with a key for an existing value.', 1625996246);
         }
 
         return $this->values[$key];
@@ -63,7 +66,7 @@ final class SimpleStringCache
      *
      * @param non-empty-string $key
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function set(string $key, string $value): void
     {
@@ -73,12 +76,12 @@ final class SimpleStringCache
     }
 
     /**
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function assertNotEmptyKey(string $key): void
     {
         if ($key === '') {
-            throw new \InvalidArgumentException('Please provide a non-empty key.', 1625995840);
+            throw new InvalidArgumentException('Please provide a non-empty key.', 1625995840);
         }
     }
 }
